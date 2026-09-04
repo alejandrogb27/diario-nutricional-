@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Diario Nutricional</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-top">
+      <h1>Mi Diario Nutricional</h1>
+      <div class="header-actions">
+        <div class="theme-widget" id="themeWidget">
+          <button type="button" id="btnTema" class="btn btn-guardar-manual btn-icon-theme" title="Personalizar apariencia" aria-label="Personalizar apariencia" aria-haspopup="true" aria-expanded="false">🎨</button>
+          <div class="theme-panel hidden" id="themePanel">
+            <p class="theme-panel-title">Apariencia</p>
+            <div class="theme-modes" id="themeModes"></div>
+            <div class="theme-swatches hidden" id="themeSwatches"></div>
+          </div>
+        </div>
+        <button type="button" id="btnExportar" class="btn btn-guardar-manual">Exportar</button>
+        <button type="button" id="btnImportar" class="btn btn-guardar-manual">Importar</button>
+        <input type="file" id="importFileInput" accept="application/json" class="hidden">
+        <button type="button" id="btnGuardarManual" class="btn btn-guardar-manual">Guardar</button>
+      </div>
+    </div>
+    <p class="subtitle">Base de alimentos + calendario semanal</p>
+    <p class="save-status hidden" id="saveStatus"></p>
+  </header>
+
+  <div class="storage-warning hidden" id="storageWarning">
+    No se pudo guardar el último cambio en este navegador. Tus datos podrían perderse al cerrar la página.
+    Revisá que no estés en modo incógnito/privado y que el almacenamiento local esté permitido para esta página.
+  </div>
+
+  <main class="container">
+
+    <section class="daily-summary card">
+      <div class="summary-head">
+        <h2>Resumen del día</h2>
+        <span class="resumen-fecha" id="resumenFecha"></span>
+      </div>
+      <div class="daily-totals">
+        <div class="total-block total-kcal">
+          <span class="total-value" id="totalKcal">0</span>
+          <span class="total-label">kcal</span>
+        </div>
+        <div class="total-block">
+          <span class="total-value" id="totalProteinas">0 g</span>
+          <span class="total-label">Proteínas</span>
+        </div>
+        <div class="total-block">
+          <span class="total-value" id="totalCarbohidratos">0 g</span>
+          <span class="total-label">Carbohidratos</span>
+        </div>
+        <div class="total-block">
+          <span class="total-value" id="totalGrasas">0 g</span>
+          <span class="total-label">Grasas</span>
+        </div>
+        <div class="total-block">
+          <span class="total-value" id="totalAzucares">0 g</span>
+          <span class="total-label">Azúcares</span>
+        </div>
+      </div>
+
+      <div class="goal-progress">
+        <div class="goal-row-head">
+          <span>Calorías</span>
+          <span id="kcalProgressText">0 / 2000 kcal</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill kcal-fill" id="kcalBar"></div>
+        </div>
+      </div>
+
+      <div id="macroGoals"></div>
+      <div class="macro-bars" id="macroBars"></div>
+      <p class="macro-legend" id="macroLegend"></p>
+    </section>
+
+    <section class="card">
+      <h2>Objetivos diarios</h2>
+      <p class="card-hint">Dejá en 0 los objetivos que no quieras usar. El progreso se muestra en el resumen.</p>
+      <form id="objetivosForm">
+        <div class="form-grid form-grid-5">
+          <div class="field">
+            <label for="objCalorias">Calorías (kcal)</label>
+            <input type="number" id="objCalorias" min="0" step="any" placeholder="Ej: 2000">
+          </div>
+          <div class="field">
+            <label for="objProteinas">Proteínas (g)</label>
+            <input type="number" id="objProteinas" min="0" step="any" placeholder="Ej: 120">
+          </div>
+          <div class="field">
+            <label for="objCarbohidratos">Carbohidratos (g)</label>
+            <input type="number" id="objCarbohidratos" min="0" step="any" placeholder="Ej: 250">
+          </div>
+          <div class="field">
+            <label for="objGrasas">Grasas (g)</label>
+            <input type="number" id="objGrasas" min="0" step="any" placeholder="Ej: 70">
+          </div>
+          <div class="field">
+            <label for="objAzucares">Azúcares (g)</label>
+            <input type="number" id="objAzucares" min="0" step="any" placeholder="Ej: 50">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Guardar objetivos</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card week-card">
+      <div class="week-nav">
+        <button type="button" id="btnSemanaAnt" class="btn btn-secondary" aria-label="Semana anterior">&#9664;</button>
+        <h2 class="week-label" id="weekLabel"></h2>
+        <button type="button" id="btnSemanaSig" class="btn btn-secondary" aria-label="Semana siguiente">&#9654;</button>
+        <button type="button" id="btnHoy" class="btn btn-primary">Hoy</button>
+      </div>
+      <div class="week-scroll">
+        <div class="week-grid" id="weekGrid"></div>
+      </div>
+    </section>
+
+    <details class="card accordion-card" id="historyCard" open>
+      <summary>Historial</summary>
+      <p class="card-hint">Comparación aproximada de calorías y macronutrientes consumidos vs. tus objetivos, día por día.</p>
+      <div class="tag-filter" id="historyRangeFilter"></div>
+      <p class="empty-list hidden" id="historyEmpty">Todavía no registraste consumos en este período.</p>
+      <div class="history-table-wrap">
+        <table class="history-table" id="historyTable"></table>
+      </div>
+    </details>
+
+    <details class="card accordion-card" id="foodDbCard">
+      <summary>Base de alimentos</summary>
+      <h3 id="formTitle" class="form-subtitle">Agregar alimento</h3>
+      <p class="card-hint">
+        Registrá acá la información nutricional del envase (referencia por 100 g/ml o por unidad).
+        La cantidad consumida se carga después, al agregar el alimento a una comida del calendario.
+      </p>
+      <form id="foodForm">
+        <input type="hidden" id="editingId" value="">
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="nombre">Nombre del alimento</label>
+            <input type="text" id="nombre" required placeholder="Ej: Cereal de desayuno">
+          </div>
+          <div class="field">
+            <label for="unidad">Unidad de consumo</label>
+            <select id="unidad">
+              <option value="g">gramos (g)</option>
+              <option value="ml">mililitros (ml)</option>
+              <option value="u">unidad/es (u)</option>
+            </select>
+          </div>
+          <div class="field field-half">
+            <label>Referencia</label>
+            <p class="unidad-nota" id="unidadNota">Valores por 100 g / 100 ml</p>
+          </div>
+          <div class="field">
+            <label for="calorias">Calorías (kcal)</label>
+            <input type="number" id="calorias" required min="0" step="any" placeholder="Ej: 380">
+          </div>
+          <div class="field">
+            <label for="proteinas">Proteínas (g)</label>
+            <input type="number" id="proteinas" required min="0" step="any" placeholder="Ej: 8">
+          </div>
+          <div class="field">
+            <label for="carbohidratos">Carbohidratos (g)</label>
+            <input type="number" id="carbohidratos" required min="0" step="any" placeholder="Ej: 75">
+          </div>
+          <div class="field">
+            <label for="grasas">Grasas (g)</label>
+            <input type="number" id="grasas" required min="0" step="any" placeholder="Ej: 5">
+          </div>
+          <div class="field">
+            <label for="azucares">Azúcares (g)</label>
+            <input type="number" id="azucares" min="0" step="any" placeholder="Ej: 20">
+          </div>
+          <fieldset class="field field-full">
+            <legend>Etiquetas (comidas donde suele usarse)</legend>
+            <div class="checkbox-group">
+              <label><input type="checkbox" class="tag-check" value="desayuno"> Desayuno</label>
+              <label><input type="checkbox" class="tag-check" value="almuerzo"> Almuerzo</label>
+              <label><input type="checkbox" class="tag-check" value="merienda"> Merienda</label>
+              <label><input type="checkbox" class="tag-check" value="cena"> Cena</label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="form-actions">
+          <button type="submit" id="btnGuardar" class="btn btn-primary">Agregar alimento</button>
+          <button type="button" id="btnCancelarEdicion" class="btn btn-secondary hidden">Cancelar</button>
+          <button type="button" id="btnCargarBasicos" class="btn btn-secondary">Cargar alimentos básicos</button>
+        </div>
+      </form>
+
+      <div class="food-search">
+        <span class="food-search-icon" aria-hidden="true">&#128269;</span>
+        <input type="text" id="foodSearch" placeholder="Buscar alimento por nombre..." autocomplete="off">
+      </div>
+      <div class="tag-filter" id="tagFilter"></div>
+      <div id="foodList"></div>
+    </details>
+
+    <details class="card accordion-card" id="presetsCard">
+      <summary>Comidas predeterminadas</summary>
+      <p class="card-hint">
+        Combiná alimentos de tu base en una comida con nombre propio (ej: "Arroz con pollo") para
+        agregarla completa a cualquier día del calendario con un clic.
+      </p>
+      <h3 id="presetFormTitle" class="form-subtitle">Crear comida predeterminada</h3>
+      <form id="presetForm">
+        <input type="hidden" id="editingPlatoId" value="">
+        <div class="field field-full">
+          <label for="platoNombre">Nombre de la comida</label>
+          <input type="text" id="platoNombre" required placeholder="Ej: Arroz con pollo">
+        </div>
+        <div id="presetItemsList" class="preset-items-list"></div>
+        <p class="modal-error hidden" id="presetError"></p>
+        <div class="form-actions">
+          <button type="button" id="btnAgregarIngrediente" class="btn btn-secondary">+ Agregar ingrediente</button>
+        </div>
+        <div class="form-actions">
+          <button type="submit" id="btnGuardarPlato" class="btn btn-primary">Guardar comida predeterminada</button>
+          <button type="button" id="btnCancelarPlato" class="btn btn-secondary hidden">Cancelar</button>
+        </div>
+      </form>
+
+      <h3 class="form-subtitle">Tus comidas predeterminadas</h3>
+      <div id="platoList"></div>
+    </details>
+
+  </main>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <h3 id="modalTitle">Agregar consumo</h3>
+      <form id="consumoForm">
+        <div class="field">
+          <label for="modalFoodSearch">Buscar alimento</label>
+          <div class="food-search">
+            <span class="food-search-icon" aria-hidden="true">&#128269;</span>
+            <input type="text" id="modalFoodSearch" placeholder="Escribí para filtrar..." autocomplete="off">
+          </div>
+        </div>
+        <div class="field">
+          <label for="modalAlimento">Alimento</label>
+          <select id="modalAlimento" size="6"></select>
+        </div>
+        <p class="modal-info" id="modalAlimentoInfo"></p>
+        <div class="field">
+          <label id="modalCantidadLabel" for="modalCantidad">Cantidad consumida</label>
+          <input type="number" id="modalCantidad" min="0" step="any" placeholder="Ej: 60">
+        </div>
+        <p class="modal-error hidden" id="modalError"></p>
+        <div class="modal-preview" id="modalPreview"></div>
+        <div class="form-actions">
+          <button type="submit" id="modalGuardar" class="btn btn-primary">Agregar</button>
+          <button type="button" id="modalCancelar" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="presetModalOverlay">
+    <div class="modal">
+      <h3 id="presetModalTitle">Agregar comida predeterminada</h3>
+      <p class="modal-info" id="presetModalInfo"></p>
+      <div id="presetModalList" class="preset-modal-list"></div>
+      <div class="form-actions">
+        <button type="button" id="presetModalCancelar" class="btn btn-secondary">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
