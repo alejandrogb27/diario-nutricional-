@@ -57,6 +57,16 @@ const DEFAULT_ALIMENTOS = [
   { id: "seed-ricota", nombre: "Ricota", unidad: "g", calorias: 174, proteinas: 11.3, carbohidratos: 3, grasas: 13, azucares: 0.3, etiquetas: ["almuerzo", "cena", "merienda"] },
   { id: "seed-jamon-cocido", nombre: "Jamón cocido", unidad: "g", calorias: 105, proteinas: 18, carbohidratos: 1, grasas: 3.5, azucares: 0.5, etiquetas: ["almuerzo", "merienda", "cena"] },
   { id: "seed-milanesa-carne", nombre: "Milanesa de carne (frita)", unidad: "g", calorias: 265, proteinas: 18, carbohidratos: 12, grasas: 16, azucares: 0.5, etiquetas: ["almuerzo", "cena"] },
+  { id: "seed-naranja", nombre: "Naranja", unidad: "g", calorias: 47, proteinas: 0.9, carbohidratos: 11.8, grasas: 0.1, azucares: 9.4, etiquetas: ["desayuno", "merienda"] },
+  { id: "seed-pera", nombre: "Pera", unidad: "g", calorias: 57, proteinas: 0.4, carbohidratos: 15.2, grasas: 0.1, azucares: 9.8, etiquetas: ["desayuno", "merienda"] },
+  { id: "seed-frutilla", nombre: "Frutilla (fresa)", unidad: "g", calorias: 32, proteinas: 0.7, carbohidratos: 7.7, grasas: 0.3, azucares: 4.9, etiquetas: ["desayuno", "merienda"] },
+  { id: "seed-atun", nombre: "Atún al natural (lata, escurrido)", unidad: "g", calorias: 116, proteinas: 25.5, carbohidratos: 0, grasas: 0.8, azucares: 0, etiquetas: ["almuerzo", "cena"] },
+  { id: "seed-garbanzos", nombre: "Garbanzos (cocidos)", unidad: "g", calorias: 164, proteinas: 8.9, carbohidratos: 27.4, grasas: 2.6, azucares: 4.8, etiquetas: ["almuerzo", "cena"] },
+  { id: "seed-batata", nombre: "Batata (hervida)", unidad: "g", calorias: 86, proteinas: 1.6, carbohidratos: 20.1, grasas: 0.1, azucares: 4.2, etiquetas: ["almuerzo", "cena"] },
+  { id: "seed-pan-integral", nombre: "Pan integral", unidad: "g", calorias: 247, proteinas: 13, carbohidratos: 41.3, grasas: 3.4, azucares: 6, etiquetas: ["desayuno", "merienda"] },
+  { id: "seed-almendras", nombre: "Almendras", unidad: "g", calorias: 579, proteinas: 21.2, carbohidratos: 21.6, grasas: 49.9, azucares: 4.4, etiquetas: ["desayuno", "merienda"] },
+  { id: "seed-espinaca", nombre: "Espinaca (cocida)", unidad: "g", calorias: 23, proteinas: 2.9, carbohidratos: 3.6, grasas: 0.4, azucares: 0.4, etiquetas: ["almuerzo", "cena"] },
+  { id: "seed-salmon", nombre: "Salmón (cocido)", unidad: "g", calorias: 208, proteinas: 20, carbohidratos: 0, grasas: 13, azucares: 0, etiquetas: ["almuerzo", "cena"] },
 ];
 
 function cloneDefaultAlimentos() {
