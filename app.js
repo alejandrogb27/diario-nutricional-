@@ -188,6 +188,28 @@ document.getElementById("btnGuardarManual").addEventListener("click", function (
   }, 3000);
 });
 
+// Botón de cabecera: agrupa en un solo clic todas las cargas de contenido
+// nuevo (alimentos básicos, comidas sugeridas, y lo que se sume a futuro),
+// sin duplicar nada que el usuario ya tenga cargado ni tocar sus datos.
+document.getElementById("btnActualizarVersion").addEventListener("click", function () {
+  const alimentosAgregados = cargarAlimentosBasicos();
+  const platosAgregados = cargarComidasSugeridas();
+  const totalAgregado = alimentosAgregados + platosAgregados;
+
+  if (totalAgregado === 0) {
+    alert("Ya tenés todo el contenido más reciente cargado (alimentos y comidas sugeridas).");
+    return;
+  }
+
+  saveState();
+  render();
+
+  const partes = [];
+  if (alimentosAgregados > 0) partes.push(alimentosAgregados + " alimento(s) nuevo(s)");
+  if (platosAgregados > 0) partes.push(platosAgregados + " comida(s) predeterminada(s) nueva(s)");
+  alert("Actualización completa: se agregaron " + partes.join(" y ") + ". Tus datos existentes no se modificaron.");
+});
+
 /* ---------- Exportar / Importar datos ---------- */
 
 function exportarDatos() {
@@ -565,19 +587,28 @@ document.getElementById("btnCancelarEdicion").addEventListener("click", function
   resetFoodForm();
 });
 
-document.getElementById("btnCargarBasicos").addEventListener("click", function () {
+// Agrega los alimentos básicos faltantes a la base del usuario.
+// Devuelve la cantidad de alimentos efectivamente agregados.
+function cargarAlimentosBasicos() {
   const existentes = new Set(state.alimentos.map((a) => a.id));
   const faltantes = cloneDefaultAlimentos().filter((a) => !existentes.has(a.id));
+  if (faltantes.length > 0) {
+    state.alimentos = state.alimentos.concat(faltantes);
+  }
+  return faltantes.length;
+}
 
-  if (faltantes.length === 0) {
+document.getElementById("btnCargarBasicos").addEventListener("click", function () {
+  const agregados = cargarAlimentosBasicos();
+
+  if (agregados === 0) {
     alert("Ya tenés cargados todos los alimentos básicos.");
     return;
   }
 
-  state.alimentos = state.alimentos.concat(faltantes);
   saveState();
   render();
-  alert("Se agregaron " + faltantes.length + " alimento(s) básico(s).");
+  alert("Se agregaron " + agregados + " alimento(s) básico(s).");
 });
 
 function readFoodForm() {
@@ -733,19 +764,28 @@ document.getElementById("btnAgregarIngrediente").addEventListener("click", funct
   addPresetItemRow();
 });
 
-document.getElementById("btnCargarComidasSugeridas").addEventListener("click", function () {
+// Agrega las comidas predeterminadas sugeridas faltantes a la base del usuario.
+// Devuelve la cantidad de comidas efectivamente agregadas.
+function cargarComidasSugeridas() {
   const existentes = new Set(state.platos.map((p) => p.id));
   const faltantes = cloneDefaultPlatos().filter((p) => !existentes.has(p.id));
+  if (faltantes.length > 0) {
+    state.platos = state.platos.concat(faltantes);
+  }
+  return faltantes.length;
+}
 
-  if (faltantes.length === 0) {
+document.getElementById("btnCargarComidasSugeridas").addEventListener("click", function () {
+  const agregados = cargarComidasSugeridas();
+
+  if (agregados === 0) {
     alert("Ya tenés cargadas todas las comidas sugeridas.");
     return;
   }
 
-  state.platos = state.platos.concat(faltantes);
   saveState();
   renderPlatos();
-  alert("Se agregaron " + faltantes.length + " comida(s) sugerida(s) (desayuno, almuerzo y cena).");
+  alert("Se agregaron " + agregados + " comida(s) sugerida(s) (desayuno, almuerzo y cena).");
 });
 
 function showPresetError(msg) {
@@ -961,15 +1001,13 @@ function openPresetModal(dateKey, mealId) {
 }
 
 function cargarComidasSugeridasDesdeModal() {
-  const existentes = new Set(state.platos.map((p) => p.id));
-  const faltantes = cloneDefaultPlatos().filter((p) => !existentes.has(p.id));
+  const agregados = cargarComidasSugeridas();
 
-  if (faltantes.length === 0) {
+  if (agregados === 0) {
     alert("Ya tenés cargadas todas las comidas sugeridas.");
     return;
   }
 
-  state.platos = state.platos.concat(faltantes);
   saveState();
   renderPlatos();
 
