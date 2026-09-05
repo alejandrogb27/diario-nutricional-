@@ -111,7 +111,8 @@
       </form>
     </details>
 
-    <section class="card week-card">
+    <details class="card accordion-card week-card" id="weekCard" open>
+      <summary>Calendario semanal</summary>
       <div class="week-nav">
         <button type="button" id="btnSemanaAnt" class="btn btn-secondary" aria-label="Semana anterior">&#9664;</button>
         <h2 class="week-label" id="weekLabel"></h2>
@@ -121,7 +122,7 @@
       <div class="week-scroll">
         <div class="week-grid" id="weekGrid"></div>
       </div>
-    </section>
+    </details>
 
     <details class="card accordion-card" id="historyCard" open>
       <summary>Historial</summary>
