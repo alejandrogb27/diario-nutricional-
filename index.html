@@ -23,11 +23,9 @@
         <button type="button" id="btnExportar" class="btn btn-guardar-manual">Exportar</button>
         <button type="button" id="btnImportar" class="btn btn-guardar-manual">Importar</button>
         <input type="file" id="importFileInput" accept="application/json" class="hidden">
-        <button type="button" id="btnGuardarManual" class="btn btn-guardar-manual">Guardar</button>
       </div>
     </div>
     <p class="subtitle">Base de alimentos + calendario semanal</p>
-    <p class="save-status hidden" id="saveStatus"></p>
   </header>
 
   <div class="storage-warning hidden" id="storageWarning">
@@ -134,6 +132,11 @@
         <table class="history-table" id="historyTable"></table>
       </div>
     </details>
+
+    <div class="quick-save-bar" id="quickSaveBar">
+      <button type="button" id="btnGuardarManual" class="btn btn-primary">Guardar cambios</button>
+      <p class="save-status hidden" id="saveStatus"></p>
+    </div>
 
     <details class="card accordion-card" id="foodDbCard">
       <summary>Base de alimentos</summary>

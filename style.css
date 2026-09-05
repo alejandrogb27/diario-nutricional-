@@ -114,10 +114,11 @@ body {
 }
 
 .save-status {
-  margin-top: 8px;
+  margin-top: 0;
   font-size: 0.82rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--chip-bg);
+  color: var(--primary-dark);
   display: inline-block;
   padding: 3px 12px;
   border-radius: 20px;
@@ -125,6 +126,20 @@ body {
 
 .save-status.guardado-error {
   background: var(--danger);
+  color: #fff;
+}
+
+.quick-save-bar {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .storage-warning {
