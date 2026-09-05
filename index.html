@@ -214,14 +214,26 @@
       <h3 id="presetFormTitle" class="form-subtitle">Crear comida predeterminada</h3>
       <form id="presetForm">
         <input type="hidden" id="editingPlatoId" value="">
-        <div class="field field-full">
-          <label for="platoNombre">Nombre de la comida</label>
-          <input type="text" id="platoNombre" required placeholder="Ej: Arroz con pollo">
+        <div class="form-grid">
+          <div class="field field-half">
+            <label for="platoNombre">Nombre de la comida</label>
+            <input type="text" id="platoNombre" required placeholder="Ej: Arroz con pollo">
+          </div>
+          <div class="field field-half">
+            <label for="platoEtiqueta">Comida del día</label>
+            <select id="platoEtiqueta">
+              <option value="">Cualquiera</option>
+              <option value="desayuno">Desayuno</option>
+              <option value="almuerzo">Almuerzo</option>
+              <option value="cena">Cena</option>
+            </select>
+          </div>
         </div>
         <div id="presetItemsList" class="preset-items-list"></div>
         <p class="modal-error hidden" id="presetError"></p>
         <div class="form-actions">
           <button type="button" id="btnAgregarIngrediente" class="btn btn-secondary">+ Agregar ingrediente</button>
+          <button type="button" id="btnCargarComidasSugeridas" class="btn btn-secondary">Cargar comidas sugeridas</button>
         </div>
         <div class="form-actions">
           <button type="submit" id="btnGuardarPlato" class="btn btn-primary">Guardar comida predeterminada</button>
@@ -230,6 +242,7 @@
       </form>
 
       <h3 class="form-subtitle">Tus comidas predeterminadas</h3>
+      <div class="tag-filter" id="platoTagFilter"></div>
       <div id="platoList"></div>
     </details>
 
