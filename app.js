@@ -63,6 +63,35 @@ function cloneDefaultAlimentos() {
   return DEFAULT_ALIMENTOS.map((a) => ({ ...a, etiquetas: a.etiquetas.slice() }));
 }
 
+// Comidas predeterminadas sugeridas: combinaciones comunes y equilibradas
+// armadas con alimentos de DEFAULT_ALIMENTOS, para que el usuario tenga
+// opciones de desayuno/almuerzo/cena listas para usar desde el día 1.
+// Igual que con los alimentos básicos, son editables/eliminables libremente.
+const DEFAULT_PLATOS = [
+  { id: "seed-plato-avena-banana", nombre: "Avena con banana y leche", etiqueta: "desayuno",
+    items: [{ alimentoId: "seed-avena", cantidad: 40 }, { alimentoId: "seed-leche", cantidad: 200 }, { alimentoId: "seed-banana", cantidad: 1 }] },
+  { id: "seed-plato-huevos-pan", nombre: "Huevos revueltos con pan", etiqueta: "desayuno",
+    items: [{ alimentoId: "seed-huevo", cantidad: 2 }, { alimentoId: "seed-pan", cantidad: 40 }, { alimentoId: "seed-manteca", cantidad: 5 }] },
+  { id: "seed-plato-yogur-banana", nombre: "Yogur con banana y avena", etiqueta: "desayuno",
+    items: [{ alimentoId: "seed-yogur", cantidad: 200 }, { alimentoId: "seed-banana", cantidad: 1 }, { alimentoId: "seed-avena", cantidad: 20 }] },
+  { id: "seed-plato-pollo-arroz", nombre: "Pollo con arroz y tomate", etiqueta: "almuerzo",
+    items: [{ alimentoId: "seed-pollo-pechuga", cantidad: 150 }, { alimentoId: "seed-arroz", cantidad: 150 }, { alimentoId: "seed-tomate", cantidad: 100 }] },
+  { id: "seed-plato-milanesa-pure", nombre: "Milanesa con puré de papa", etiqueta: "almuerzo",
+    items: [{ alimentoId: "seed-milanesa-carne", cantidad: 150 }, { alimentoId: "seed-papa", cantidad: 200 }] },
+  { id: "seed-plato-lentejas-arroz", nombre: "Lentejas con arroz y cebolla", etiqueta: "almuerzo",
+    items: [{ alimentoId: "seed-lentejas", cantidad: 200 }, { alimentoId: "seed-arroz", cantidad: 100 }, { alimentoId: "seed-cebolla", cantidad: 30 }] },
+  { id: "seed-plato-pescado-papas", nombre: "Pescado con papas al horno", etiqueta: "cena",
+    items: [{ alimentoId: "seed-pescado", cantidad: 150 }, { alimentoId: "seed-papa", cantidad: 200 }, { alimentoId: "seed-aceite-oliva", cantidad: 10 }] },
+  { id: "seed-plato-carne-palta", nombre: "Carne con ensalada de palta", etiqueta: "cena",
+    items: [{ alimentoId: "seed-carne-roja", cantidad: 150 }, { alimentoId: "seed-palta", cantidad: 80 }, { alimentoId: "seed-tomate", cantidad: 100 }] },
+  { id: "seed-plato-fideos-salsa", nombre: "Fideos con salsa de tomate", etiqueta: "cena",
+    items: [{ alimentoId: "seed-fideos", cantidad: 150 }, { alimentoId: "seed-tomate", cantidad: 150 }, { alimentoId: "seed-cebolla", cantidad: 30 }, { alimentoId: "seed-aceite-oliva", cantidad: 10 }] },
+];
+
+function cloneDefaultPlatos() {
+  return DEFAULT_PLATOS.map((p) => ({ ...p, items: p.items.map((it) => ({ ...it })) }));
+}
+
 let state = loadState();
 
 let selectedDate = todayKey();
@@ -79,6 +108,7 @@ let modalFoodSearch = "";
 let presetItemsDraft = [];
 let modalPresetDateKey = null;
 let modalPresetMealId = null;
+let platoFilter = "todos";
 
 function defaultObjetivos() {
   return { calorias: 2000, proteinas: 0, carbohidratos: 0, grasas: 0, azucares: 0 };
@@ -102,7 +132,7 @@ function loadState() {
       alimentos: esInstalacionNueva ? cloneDefaultAlimentos() : [],
       semanas: {},
       objetivos: objetivos,
-      platos: platosPrevios,
+      platos: esInstalacionNueva ? cloneDefaultPlatos() : platosPrevios,
     };
   }
 
@@ -693,6 +723,21 @@ document.getElementById("btnAgregarIngrediente").addEventListener("click", funct
   addPresetItemRow();
 });
 
+document.getElementById("btnCargarComidasSugeridas").addEventListener("click", function () {
+  const existentes = new Set(state.platos.map((p) => p.id));
+  const faltantes = cloneDefaultPlatos().filter((p) => !existentes.has(p.id));
+
+  if (faltantes.length === 0) {
+    alert("Ya tenés cargadas todas las comidas sugeridas.");
+    return;
+  }
+
+  state.platos = state.platos.concat(faltantes);
+  saveState();
+  renderPlatos();
+  alert("Se agregaron " + faltantes.length + " comida(s) sugerida(s) (desayuno, almuerzo y cena).");
+});
+
 function showPresetError(msg) {
   const el = document.getElementById("presetError");
   el.textContent = msg;
@@ -708,6 +753,7 @@ document.getElementById("presetForm").addEventListener("submit", function (e) {
   hidePresetError();
 
   const nombre = document.getElementById("platoNombre").value.trim();
+  const etiqueta = document.getElementById("platoEtiqueta").value;
   const items = presetItemsDraft
     .filter((it) => it.alimentoId && parseFloat(it.cantidad) > 0)
     .map((it) => ({ alimentoId: it.alimentoId, cantidad: parseFloat(it.cantidad) }));
@@ -726,10 +772,11 @@ document.getElementById("presetForm").addEventListener("submit", function (e) {
     const plato = state.platos.find((p) => p.id === editingId);
     if (plato) {
       plato.nombre = nombre;
+      plato.etiqueta = etiqueta;
       plato.items = items;
     }
   } else {
-    state.platos.push({ id: nextId(), nombre: nombre, items: items });
+    state.platos.push({ id: nextId(), nombre: nombre, etiqueta: etiqueta, items: items });
   }
 
   saveState();
@@ -758,6 +805,7 @@ function startEditPlato(id) {
 
   document.getElementById("editingPlatoId").value = plato.id;
   document.getElementById("platoNombre").value = plato.nombre;
+  document.getElementById("platoEtiqueta").value = plato.etiqueta || "";
   presetItemsDraft = plato.items.map((it) => ({ alimentoId: it.alimentoId, cantidad: it.cantidad }));
   renderPresetItemsList();
 
@@ -784,6 +832,23 @@ function deletePlato(id) {
   renderPlatos();
 }
 
+function renderPlatoTagFilter() {
+  const container = document.getElementById("platoTagFilter");
+  const options = [{ id: "todos", label: "Todas" }].concat(MEALS.filter((m) => m.id !== "merienda").map((m) => ({ id: m.id, label: m.nombre })));
+  container.innerHTML = options
+    .map((o) => {
+      const active = platoFilter === o.id ? " active" : "";
+      return '<button type="button" class="btn btn-secondary' + active + '" onclick="setPlatoFilter(\'' + o.id + '\')">' + o.label + "</button>";
+    })
+    .join("");
+}
+
+function setPlatoFilter(f) {
+  platoFilter = f;
+  renderPlatoTagFilter();
+  renderPlatos();
+}
+
 function renderPlatos() {
   const container = document.getElementById("platoList");
 
@@ -792,7 +857,17 @@ function renderPlatos() {
     return;
   }
 
-  const platosOrdenados = state.platos
+  let platos = state.platos;
+  if (platoFilter !== "todos") {
+    platos = platos.filter((p) => p.etiqueta === platoFilter);
+  }
+
+  if (platos.length === 0) {
+    container.innerHTML = '<p class="empty-list">No hay comidas predeterminadas con esta etiqueta.</p>';
+    return;
+  }
+
+  const platosOrdenados = platos
     .slice()
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
 
@@ -808,6 +883,8 @@ function renderPlatos() {
       .filter(Boolean)
       .join(", ") || "Sin ingredientes válidos";
 
+    const meal = MEALS.find((m) => m.id === p.etiqueta);
+
     html +=
       '<div class="food-card">' +
       '<div class="food-card-head"><div>' +
@@ -821,6 +898,7 @@ function renderPlatos() {
       '<div><strong>' + round(n.grasas) + "</strong><span>Grasas</span></div>" +
       '<div><strong>' + round(n.azucares) + "</strong><span>Azúc.</span></div>" +
       "</div>" +
+      (meal ? '<div class="food-tags"><span class="tag-chip">' + meal.nombre + "</span></div>" : "") +
       '<div class="food-actions">' +
       '<button type="button" class="btn-danger" onclick="startEditPlato(\'' + p.id + '\')">Editar</button>' +
       '<button type="button" class="btn-danger" onclick="deletePlato(\'' + p.id + '\')">Eliminar</button>' +
@@ -845,7 +923,8 @@ function openPresetModal(dateKey, mealId) {
   const container = document.getElementById("presetModalList");
   if (state.platos.length === 0) {
     container.innerHTML =
-      '<p class="empty-list">Todavía no creaste comidas predeterminadas. Podés crearlas en la sección "Comidas predeterminadas".</p>';
+      '<p class="empty-list">Todavía no tenés comidas predeterminadas cargadas.</p>' +
+      '<button type="button" class="btn btn-primary" onclick="cargarComidasSugeridasDesdeModal()">Cargar comidas sugeridas (desayuno, almuerzo y cena)</button>';
   } else {
     const platosOrdenados = state.platos
       .slice()
@@ -869,6 +948,25 @@ function openPresetModal(dateKey, mealId) {
   }
 
   document.getElementById("presetModalOverlay").classList.remove("hidden");
+}
+
+function cargarComidasSugeridasDesdeModal() {
+  const existentes = new Set(state.platos.map((p) => p.id));
+  const faltantes = cloneDefaultPlatos().filter((p) => !existentes.has(p.id));
+
+  if (faltantes.length === 0) {
+    alert("Ya tenés cargadas todas las comidas sugeridas.");
+    return;
+  }
+
+  state.platos = state.platos.concat(faltantes);
+  saveState();
+  renderPlatos();
+
+  // Refresca el modal ya abierto para mostrar las comidas recién cargadas
+  if (modalPresetDateKey && modalPresetMealId) {
+    openPresetModal(modalPresetDateKey, modalPresetMealId);
+  }
 }
 
 function closePresetModal() {
@@ -1160,6 +1258,7 @@ function render() {
   renderTagFilter();
   renderWeek();
   renderHistory();
+  renderPlatoTagFilter();
   renderPlatos();
 }
 
