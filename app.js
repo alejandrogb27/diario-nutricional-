@@ -1,5 +1,17 @@
 "use strict";
 
+// ---------------------------------------------------------------------------
+// Versión de la aplicación (Semantic Versioning: MAJOR.MINOR.PATCH).
+// Único lugar donde se define: al lanzar cambios, actualizar solo esta línea.
+//   MAJOR: cambios incompatibles (ej. requieren migrar datos existentes)
+//   MINOR: funcionalidades nuevas compatibles con versiones anteriores
+//   PATCH: correcciones de errores sin agregar funcionalidades
+// Ver CHANGELOG.md para el historial de versiones.
+// No confundir con STORAGE_KEY/VERSION de abajo, que versiona el esquema
+// de datos guardado en localStorage (migraciones), no la app en sí.
+// ---------------------------------------------------------------------------
+const APP_VERSION = "1.0.0";
+
 const STORAGE_KEY = "diarioNutricional";
 const VERSION = 2;
 
@@ -1683,6 +1695,7 @@ function deleteConsumo(dateKey, mealId, consumoId) {
 
 /* ---------- Init ---------- */
 
+document.getElementById("appVersionLabel").textContent = "· v" + APP_VERSION;
 renderThemeUI();
 fillObjetivosForm();
 renderHistoryFilter();

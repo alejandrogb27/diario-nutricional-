@@ -101,6 +101,12 @@ body {
   background: var(--header-overlay-hover);
 }
 
+.version-badge {
+  font-weight: 400;
+  opacity: 0.75;
+  font-size: 0.78rem;
+}
+
 .subtitle {
   margin-top: 4px;
   font-size: 0.9rem;
