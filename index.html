@@ -260,12 +260,10 @@
           <label for="modalFoodSearch">Buscar alimento</label>
           <div class="food-search">
             <span class="food-search-icon" aria-hidden="true">&#128269;</span>
-            <input type="text" id="modalFoodSearch" placeholder="Escribí para filtrar..." autocomplete="off">
+            <input type="text" id="modalFoodSearch" placeholder="Escribí para filtrar..." autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="modalFoodSuggestions">
+            <ul class="autocomplete-list hidden" id="modalFoodSuggestions" role="listbox"></ul>
           </div>
-        </div>
-        <div class="field">
-          <label for="modalAlimento">Alimento</label>
-          <select id="modalAlimento" size="6"></select>
+          <input type="hidden" id="modalAlimentoId" value="">
         </div>
         <p class="modal-info" id="modalAlimentoInfo"></p>
         <div class="field">
