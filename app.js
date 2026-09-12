@@ -1089,53 +1089,81 @@ function fillObjetivosForm() {
 
 /* ---------- Modal de consumo ---------- */
 
-function rebuildModalSelect(query) {
-  const meal = MEALS.find((m) => m.id === modalMealId);
-  if (!meal) return;
+const MAX_SUGERENCIAS_ALIMENTO = 8;
 
-  const select = document.getElementById("modalAlimento");
-  const prevValue = select.value;
-
+function buscarAlimentosPorNombre(query) {
   const q = normalizarTexto((query || "").trim());
+  if (!q) return [];
 
-  let foods = state.alimentos.slice().sort((a, b) =>
-    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+  // Evitar duplicados en la lista de búsqueda (por id)
+  const vistos = new Set();
+  const coincidencias = [];
+  state.alimentos.forEach((al) => {
+    if (vistos.has(al.id)) return;
+    if (normalizarTexto(al.nombre).includes(q)) {
+      vistos.add(al.id);
+      coincidencias.push(al);
+    }
+  });
+
+  coincidencias.sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }));
+  return coincidencias;
+}
+
+function suggestionItemHtml(al) {
+  const base = al.unidad === "u" ? 1 : 100;
+  const ref = nutritionFor(al, base);
+  const refLabel = al.unidad === "u" ? "por unidad" : "por 100 " + (al.unidad === "ml" ? "ml" : "g");
+  return (
+    '<li class="autocomplete-item" data-id="' + al.id + '" role="option" tabindex="-1">' +
+    '<span class="autocomplete-name">' + escapeHtml(al.nombre) + "</span>" +
+    '<span class="autocomplete-macros">' +
+    round(ref.proteinas) + " g prot &middot; " +
+    round(ref.carbohidratos) + " g carb &middot; " +
+    round(ref.grasas) + " g grasas (" + refLabel + ")" +
+    "</span>" +
+    "</li>"
   );
-  if (q) {
-    foods = foods.filter((a) => normalizarTexto(a.nombre).includes(q));
-  }
+}
 
-  const tagged = foods.filter((a) => a.etiquetas && a.etiquetas.includes(modalMealId));
-  const untagged = foods.filter((a) => !(a.etiquetas && a.etiquetas.includes(modalMealId)));
+function renderFoodSuggestions(query) {
+  const list = document.getElementById("modalFoodSuggestions");
+  const searchEl = document.getElementById("modalFoodSearch");
+  const q = (query || "").trim();
 
-  let html = "";
   if (!q) {
-    // sin búsqueda: grupos separados
-    if (tagged.length > 0) {
-      html += '<optgroup label="Suele usarse en ' + meal.nombre + '">';
-      html += tagged.map((a) => optionHtml(a)).join("");
-      html += "</optgroup>";
-    }
-    if (untagged.length > 0) {
-      html += '<optgroup label="Otros alimentos">';
-      html += untagged.map((a) => optionHtml(a)).join("");
-      html += "</optgroup>";
-    }
-  } else {
-    // con búsqueda: lista plana sin grupos
-    if (foods.length === 0) {
-      html = '<option value="" disabled>Sin resultados</option>';
-    } else {
-      html = foods.map((a) => optionHtml(a)).join("");
-    }
+    closeFoodSuggestions();
+    return;
   }
 
-  select.innerHTML = html;
+  const coincidencias = buscarAlimentosPorNombre(q).slice(0, MAX_SUGERENCIAS_ALIMENTO);
 
-  // restaurar selección previa si sigue disponible
-  if (prevValue) select.value = prevValue;
+  if (coincidencias.length === 0) {
+    list.innerHTML = '<li class="autocomplete-empty">No hay alimentos encontrados</li>';
+  } else {
+    list.innerHTML = coincidencias.map((al) => suggestionItemHtml(al)).join("");
+  }
 
+  list.classList.remove("hidden");
+  searchEl.setAttribute("aria-expanded", "true");
+}
+
+function closeFoodSuggestions() {
+  const list = document.getElementById("modalFoodSuggestions");
+  list.innerHTML = "";
+  list.classList.add("hidden");
+  document.getElementById("modalFoodSearch").setAttribute("aria-expanded", "false");
+}
+
+function selectAlimento(alimentoId) {
+  document.getElementById("modalAlimentoId").value = alimentoId;
+  const searchEl = document.getElementById("modalFoodSearch");
+  searchEl.value = "";
+  modalFoodSearch = "";
+  closeFoodSuggestions();
+  hideModalError();
   updateModalPreview();
+  searchEl.focus();
 }
 
 function openModal(dateKey, mealId, consumoId) {
@@ -1151,38 +1179,36 @@ function openModal(dateKey, mealId, consumoId) {
 
   const searchEl = document.getElementById("modalFoodSearch");
   searchEl.value = "";
-
-  rebuildModalSelect("");
+  closeFoodSuggestions();
+  document.getElementById("modalAlimentoId").value = "";
 
   if (modalConsumoId) {
     const c = getDay(dateKey)[mealId].find((x) => x.id === modalConsumoId);
     if (c) {
-      document.getElementById("modalAlimento").value = c.alimentoId;
+      document.getElementById("modalAlimentoId").value = c.alimentoId;
       document.getElementById("modalCantidad").value = c.cantidad;
       updateModalPreview();
     }
   } else {
     document.getElementById("modalCantidad").value = "";
+    updateModalPreview();
   }
 
   document.getElementById("modalOverlay").classList.remove("hidden");
   searchEl.focus();
 }
 
-function optionHtml(al) {
-  return '<option value="' + al.id + '">' + escapeHtml(al.nombre) + "</option>";
-}
-
 function closeModal() {
   document.getElementById("modalOverlay").classList.add("hidden");
+  closeFoodSuggestions();
   modalDateKey = null;
   modalMealId = null;
   modalConsumoId = null;
 }
 
 function updateModalPreview() {
-  const select = document.getElementById("modalAlimento");
-  const al = state.alimentos.find((a) => a.id === select.value);
+  const alimentoId = document.getElementById("modalAlimentoId").value;
+  const al = state.alimentos.find((a) => a.id === alimentoId);
   const cantidad = parseFloat(document.getElementById("modalCantidad").value) || 0;
 
   const infoEl = document.getElementById("modalAlimentoInfo");
@@ -1218,14 +1244,33 @@ function updateModalPreview() {
 
 document.getElementById("modalFoodSearch").addEventListener("input", function () {
   modalFoodSearch = this.value;
-  rebuildModalSelect(modalFoodSearch);
+  renderFoodSuggestions(modalFoodSearch);
   hideModalError();
 });
 
-document.getElementById("modalAlimento").addEventListener("change", function () {
-  hideModalError();
-  updateModalPreview();
+document.getElementById("modalFoodSearch").addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    closeFoodSuggestions();
+  }
 });
+
+document.getElementById("modalFoodSuggestions").addEventListener("click", function (e) {
+  const item = e.target.closest(".autocomplete-item");
+  if (!item || !item.dataset.id) return;
+  selectAlimento(item.dataset.id);
+});
+
+document.addEventListener("click", function (e) {
+  const wrap = document.querySelector(".food-search");
+  if (wrap && !wrap.contains(e.target)) {
+    closeFoodSuggestions();
+  }
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeFoodSuggestions();
+});
+
 document.getElementById("modalCantidad").addEventListener("input", function () {
   hideModalError();
   updateModalPreview();
@@ -1248,7 +1293,7 @@ function hideModalError() {
 document.getElementById("consumoForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const alimentoId = document.getElementById("modalAlimento").value;
+  const alimentoId = document.getElementById("modalAlimentoId").value;
   if (!alimentoId) {
     showModalError("Elegí un alimento de la lista.");
     return;
